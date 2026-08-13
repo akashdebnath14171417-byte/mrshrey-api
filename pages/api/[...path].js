@@ -1,5 +1,5 @@
 // =====================================================================
-// MR SHREY API - Pure Deno (No Dependencies)
+// MR SHREY API - Next.js API Routes
 // =====================================================================
 
 const API_KEYS = {
@@ -53,59 +53,57 @@ function validateApiKey(apiKey) {
   return { valid: true, data };
 }
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization"
-};
-
-async function handler(req) {
-  const url = new URL(req.url);
-  const path = url.pathname;
-  const params = url.searchParams;
-  const parts = path.split('/').filter(p => p);
+export default async function handler(req, res) {
+  const { query } = req;
+  const parts = query.path || [];
+  const method = req.method;
   
-  if (req.method === "OPTIONS") {
-    return new Response(null, { status: 204, headers: corsHeaders });
+  // CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  
+  if (method === 'OPTIONS') {
+    return res.status(204).end();
   }
   
+  // =============================================================
   // HOME
+  // =============================================================
   if (parts.length === 0) {
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       service: "MR SHREY API Gateway",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
-      version: "6.0",
+      version: "7.0",
       status: "✅ All APIs Working",
       endpoints: {
-        "/vehicle/:rc": { example: "/vehicle/MH12DE1433" },
-        "/number/:phone": { example: "/number/9876543210" },
-        "/aadhar/:id": { example: "/aadhar/123456789012" },
-        "/upi/:vpa": { example: "/upi/example@axl" },
-        "/pan/:pan": { params: "api_key", example: "/pan/JCZPS4827P?api_key=MR_SHREY_MONTHLY_001" },
-        "/keyinfo/:api_key": { example: "/keyinfo/MR_SHREY_MONTHLY_001" }
+        "/api/vehicle/:rc": { example: "/api/vehicle/MH12DE1433" },
+        "/api/number/:phone": { example: "/api/number/9876543210" },
+        "/api/aadhar/:id": { example: "/api/aadhar/123456789012" },
+        "/api/upi/:vpa": { example: "/api/upi/example@axl" },
+        "/api/pan/:pan": { params: "api_key", example: "/api/pan/JCZPS4827P?api_key=MR_SHREY_MONTHLY_001" },
+        "/api/keyinfo/:api_key": { example: "/api/keyinfo/MR_SHREY_MONTHLY_001" }
       }
-    }, null, 2), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
   
+  // =============================================================
   // KEY INFO
+  // =============================================================
   if (parts[0] === "keyinfo" && parts.length === 2) {
     const keyInfo = getKeyInfo(parts[1]);
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       status: keyInfo ? "success" : "error",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
       key_info: keyInfo || "Invalid API Key!"
-    }, null, 2), {
-      status: 200,
-      headers: { "Content-Type": "application/json", ...corsHeaders }
     });
   }
   
+  // =============================================================
   // VEHICLE
+  // =============================================================
   if (parts[0] === "vehicle" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -113,29 +111,25 @@ async function handler(req) {
         { headers: { "User-Agent": "Mozilla/5.0" } }
       );
       const data = await response.json();
-      return new Response(JSON.stringify({
+      return res.status(200).json({
         status: "success",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3",
         data: data
-      }, null, 2), {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     } catch (error) {
-      return new Response(JSON.stringify({
+      return res.status(500).json({
         status: "error",
         message: error.message || "Vehicle API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
-      }, null, 2), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
   }
   
+  // =============================================================
   // NUMBER
+  // =============================================================
   if (parts[0] === "number" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -143,29 +137,25 @@ async function handler(req) {
         { headers: { "User-Agent": "Mozilla/5.0" } }
       );
       const data = await response.json();
-      return new Response(JSON.stringify({
+      return res.status(200).json({
         status: "success",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3",
         data: data
-      }, null, 2), {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     } catch (error) {
-      return new Response(JSON.stringify({
+      return res.status(500).json({
         status: "error",
         message: error.message || "Number API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
-      }, null, 2), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
   }
   
+  // =============================================================
   // AADHAR
+  // =============================================================
   if (parts[0] === "aadhar" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -173,29 +163,25 @@ async function handler(req) {
         { headers: { "User-Agent": "Mozilla/5.0" } }
       );
       const data = await response.json();
-      return new Response(JSON.stringify({
+      return res.status(200).json({
         status: "success",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3",
         data: data
-      }, null, 2), {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     } catch (error) {
-      return new Response(JSON.stringify({
+      return res.status(500).json({
         status: "error",
         message: error.message || "Aadhar API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
-      }, null, 2), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
   }
   
+  // =============================================================
   // UPI
+  // =============================================================
   if (parts[0] === "upi" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -216,52 +202,42 @@ async function handler(req) {
         }
       );
       const data = await response.json();
-      return new Response(JSON.stringify({
+      return res.status(200).json({
         status: "success",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3",
         data: data
-      }, null, 2), {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     } catch (error) {
-      return new Response(JSON.stringify({
+      return res.status(500).json({
         status: "error",
         message: error.message || "UPI API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
-      }, null, 2), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
   }
   
+  // =============================================================
   // PAN (Requires API Key)
+  // =============================================================
   if (parts[0] === "pan" && parts.length === 2) {
-    const apiKey = params.get('api_key');
+    const apiKey = req.query.api_key;
     if (!apiKey) {
-      return new Response(JSON.stringify({
+      return res.status(400).json({
         status: "error",
         message: "❌ API Key Required!",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
-      }, null, 2), {
-        status: 400,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
     const validation = validateApiKey(apiKey);
     if (!validation.valid) {
-      return new Response(JSON.stringify({
+      return res.status(403).json({
         status: "error",
         message: validation.error,
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
-      }, null, 2), {
-        status: 403,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
     try {
@@ -279,39 +255,27 @@ async function handler(req) {
       const data = await response.json();
       validation.data.used_today += 1;
       const keyInfo = getKeyInfo(apiKey);
-      return new Response(JSON.stringify({
+      return res.status(200).json({
         status: "success",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3",
         key_info: keyInfo,
         data: data
-      }, null, 2), {
-        status: 200,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     } catch (error) {
-      return new Response(JSON.stringify({
+      return res.status(500).json({
         status: "error",
         message: error.message || "PAN API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
-      }, null, 2), {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
   }
   
-  return new Response(JSON.stringify({
+  return res.status(404).json({
     status: "error",
     message: "Endpoint not found",
     developer: "MR SHREY",
     channel: "https://t.me/MR_SHREY3"
-  }, null, 2), {
-    status: 404,
-    headers: { "Content-Type": "application/json", ...corsHeaders }
   });
 }
-
-const PORT = parseInt(Deno.env.get("PORT") || "8000");
-Deno.serve({ port: PORT }, handler);
