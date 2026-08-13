@@ -1,10 +1,10 @@
 // =====================================================================
-// MR SHREY API - Simple & Fast
+// MR SHREY API - ESM Version (Deno Compatible)
 // =====================================================================
 
-const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
+import express from 'express';
+import axios from 'axios';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,7 +13,7 @@ app.use(cors());
 app.use(express.json());
 
 // =====================================================================
-// API KEY SYSTEM (Fixed)
+// API KEY SYSTEM
 // =====================================================================
 
 const API_KEYS = {
@@ -22,6 +22,22 @@ const API_KEYS = {
     plan: "1 Month",
     daily_limit: 1000,
     expiry: "2026-09-13",
+    used_today: 0,
+    last_reset: "2026-08-13"
+  },
+  "MR_SHREY_2MONTH_001": {
+    key: "MR_SHREY_2MONTH_001",
+    plan: "2 Months",
+    daily_limit: 2000,
+    expiry: "2026-10-13",
+    used_today: 0,
+    last_reset: "2026-08-13"
+  },
+  "MR_SHREY_3MONTH_001": {
+    key: "MR_SHREY_3MONTH_001",
+    plan: "3 Months",
+    daily_limit: 3000,
+    expiry: "2026-11-13",
     used_today: 0,
     last_reset: "2026-08-13"
   },
