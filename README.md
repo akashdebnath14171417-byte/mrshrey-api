@@ -1,44 +1,33 @@
-# Next.js with Deno Tutorial
+# 🔥 MR SHREY API Gateway
 
-This project demonstrates how to run a [Next.js](https://nextjs.org) application using [Deno](https://deno.com). It's a complete tutorial example showing how to set up, develop, and deploy a Next.js app in the Deno runtime environment.
+Complete API Package with Key Expiry System
 
-## Make it your own!
+## 👨‍💻 Developer
+- **MR SHREY**
+- [Telegram](https://t.me/MR_SHREY3)
 
-You can deploy your own version of this Next.js app to Deno Deploy immediately.
-Just click the button to clone and deploy.
+## 📌 Available APIs
 
-[![Deploy on Deno](https://deno.com/button)](https://app.deno.com/new?clone=https://github.com/denoland/tutorial-with-next)
+| API | Endpoint | Example |
+|-----|----------|---------|
+| PAN Info | `/pan/<pan>` | `/pan/JCZPS4827P?api_key=MR_SHREY_MONTHLY_001` |
+| Aadhar Info | `/aadhar/<number>` | `/aadhar/123456789012?api_key=MR_SHREY_MONTHLY_001` |
+| Vehicle Info | `/vehicle/<rc>` | `/vehicle/MH12DE1433?api_key=MR_SHREY_MONTHLY_001` |
+| Vehicle91 (Free) | `/vehicle91/<rc>` | `/vehicle91/MH12DE1433` |
+| Number Info | `/number/<phone>` | `/number/9876543210?api_key=MR_SHREY_MONTHLY_001` |
+| UPI Info | `/upi/<vpa>` | `/upi/example@axl?api_key=MR_SHREY_MONTHLY_001` |
+| Key Info | `/keyinfo/<api_key>` | `/keyinfo/MR_SHREY_MONTHLY_001` |
 
-## About This Tutorial
+## 🔑 Available Keys
 
-This tutorial project shows you how to:
+| Plan | API Key | Daily Limit |
+|------|---------|-------------|
+| 1 Month | `MR_SHREY_MONTHLY_001` | 1000 |
+| 2 Months | `MR_SHREY_2MONTH_001` | 2000 |
+| 3 Months | `MR_SHREY_3MONTH_001` | 3000 |
+| Master (1 Year) | `MR_SHREY_MASTER_001` | 10000 |
 
-- Set up a Next.js project
-- Run your project on Deno
-- Add a simple backend API route
-- Update the frontend to fetch data from the backend
-- Deploy your Next.js app to Deno Deploy
-
-For the complete step-by-step of this tutorial, visit: [**Next.js Tutorial on Deno Docs**](https://docs.deno.com/examples/next_tutorial/)
-
-## Getting Started
-
-First, run the development server:
+## 🚀 Deploy on Vercel
 
 ```bash
-deno run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-## Deploy on Deno
-
-You can deploy this project on Deno Deploy! To get started, follow these steps:
-
-1. Go to the [Deno Deploy dashboard](https://app.deno.com/).
-2. Click on "New Project".
-3. Select your GitHub repository.
-4. Follow the prompts to deploy your Next.js application.
-5. Once deployed, you will receive a URL where your application is live.
+vercel --prod
