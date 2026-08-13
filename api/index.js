@@ -1,5 +1,5 @@
 // =====================================================================
-// MR SHREY API - Next.js API Routes
+// MR SHREY API - Vercel Serverless
 // =====================================================================
 
 const API_KEYS = {
@@ -53,10 +53,7 @@ function validateApiKey(apiKey) {
   return { valid: true, data };
 }
 
-export default async function handler(req, res) {
-  const { query } = req;
-  const parts = query.path || [];
-  
+module.exports = async (req, res) => {
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -66,13 +63,17 @@ export default async function handler(req, res) {
     return res.status(204).end();
   }
   
+  const path = req.url.split('?')[0];
+  const parts = path.split('/').filter(p => p);
+  const query = req.query;
+  
   // HOME
-  if (parts.length === 0) {
+  if (parts.length === 0 || parts[0] === '') {
     return res.status(200).json({
       service: "MR SHREY API Gateway",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
-      version: "7.0",
+      version: "8.0",
       status: "✅ All APIs Working",
       endpoints: {
         "/api/vehicle/:rc": { example: "/api/vehicle/MH12DE1433" },
@@ -86,7 +87,7 @@ export default async function handler(req, res) {
   }
   
   // KEY INFO
-  if (parts[0] === "keyinfo" && parts.length === 2) {
+  if (parts[0] === 'keyinfo' && parts.length === 2) {
     const keyInfo = getKeyInfo(parts[1]);
     return res.status(200).json({
       status: keyInfo ? "success" : "error",
@@ -97,7 +98,7 @@ export default async function handler(req, res) {
   }
   
   // VEHICLE
-  if (parts[0] === "vehicle" && parts.length === 2) {
+  if (parts[0] === 'vehicle' && parts.length === 2) {
     try {
       const response = await fetch(
         `https://rootx-osint.in/?type=v_num&key=seed_bhai&query=${parts[1]}`,
@@ -121,7 +122,7 @@ export default async function handler(req, res) {
   }
   
   // NUMBER
-  if (parts[0] === "number" && parts.length === 2) {
+  if (parts[0] === 'number' && parts.length === 2) {
     try {
       const response = await fetch(
         `https://rootx-osint.in/?type=num&key=seed_bhai&query=${parts[1]}`,
@@ -145,7 +146,7 @@ export default async function handler(req, res) {
   }
   
   // AADHAR
-  if (parts[0] === "aadhar" && parts.length === 2) {
+  if (parts[0] === 'aadhar' && parts.length === 2) {
     try {
       const response = await fetch(
         `https://rootx-osint.in/?type=aadhar_fam_v2&key=seed_bhai&query=${parts[1]}`,
@@ -169,7 +170,7 @@ export default async function handler(req, res) {
   }
   
   // UPI
-  if (parts[0] === "upi" && parts.length === 2) {
+  if (parts[0] === 'upi' && parts.length === 2) {
     try {
       const response = await fetch(
         "https://www.amazon.in/apay/money-transfer/verify-vpa/v2",
@@ -206,8 +207,8 @@ export default async function handler(req, res) {
   }
   
   // PAN
-  if (parts[0] === "pan" && parts.length === 2) {
-    const apiKey = req.query.api_key;
+  if (parts[0] === 'pan' && parts.length === 2) {
+    const apiKey = query.api_key;
     if (!apiKey) {
       return res.status(400).json({
         status: "error",
@@ -263,4 +264,4 @@ export default async function handler(req, res) {
     developer: "MR SHREY",
     channel: "https://t.me/MR_SHREY3"
   });
-}
+};
