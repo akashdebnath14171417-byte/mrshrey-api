@@ -1,6 +1,6 @@
 {
   "name": "mrshrey-api",
   "version": "1.0.0",
-  "description": "MR SHREY API Gateway",
+  "description": "MR SHREY API",
   "main": "api/index.js"
 }
