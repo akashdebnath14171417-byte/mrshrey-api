@@ -2,10 +2,6 @@
 // MR SHREY API - Pure Deno (No Dependencies)
 // =====================================================================
 
-// =====================================================================
-// API KEY SYSTEM
-// =====================================================================
-
 const API_KEYS = {
   "MR_SHREY_MONTHLY_001": {
     key: "MR_SHREY_MONTHLY_001",
@@ -24,10 +20,6 @@ const API_KEYS = {
     last_reset: "2026-08-13"
   }
 };
-
-// =====================================================================
-// HELPERS
-// =====================================================================
 
 function getKeyInfo(apiKey) {
   const data = API_KEYS[apiKey];
@@ -61,19 +53,11 @@ function validateApiKey(apiKey) {
   return { valid: true, data };
 }
 
-// =====================================================================
-// CORS HEADERS
-// =====================================================================
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization"
 };
-
-// =====================================================================
-// MAIN HANDLER
-// =====================================================================
 
 async function handler(req) {
   const url = new URL(req.url);
@@ -81,14 +65,11 @@ async function handler(req) {
   const params = url.searchParams;
   const parts = path.split('/').filter(p => p);
   
-  // CORS Preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
   
-  // =============================================================
   // HOME
-  // =============================================================
   if (parts.length === 0) {
     return new Response(JSON.stringify({
       service: "MR SHREY API Gateway",
@@ -110,9 +91,7 @@ async function handler(req) {
     });
   }
   
-  // =============================================================
   // KEY INFO
-  // =============================================================
   if (parts[0] === "keyinfo" && parts.length === 2) {
     const keyInfo = getKeyInfo(parts[1]);
     return new Response(JSON.stringify({
@@ -126,9 +105,7 @@ async function handler(req) {
     });
   }
   
-  // =============================================================
   // VEHICLE
-  // =============================================================
   if (parts[0] === "vehicle" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -158,9 +135,7 @@ async function handler(req) {
     }
   }
   
-  // =============================================================
   // NUMBER
-  // =============================================================
   if (parts[0] === "number" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -190,9 +165,7 @@ async function handler(req) {
     }
   }
   
-  // =============================================================
   // AADHAR
-  // =============================================================
   if (parts[0] === "aadhar" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -222,9 +195,7 @@ async function handler(req) {
     }
   }
   
-  // =============================================================
   // UPI
-  // =============================================================
   if (parts[0] === "upi" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -267,9 +238,7 @@ async function handler(req) {
     }
   }
   
-  // =============================================================
   // PAN (Requires API Key)
-  // =============================================================
   if (parts[0] === "pan" && parts.length === 2) {
     const apiKey = params.get('api_key');
     if (!apiKey) {
@@ -333,41 +302,16 @@ async function handler(req) {
     }
   }
   
-  // =============================================================
-  // 404
-  // =============================================================
   return new Response(JSON.stringify({
     status: "error",
     message: "Endpoint not found",
     developer: "MR SHREY",
-    channel: "https://t.me/MR_SHREY3",
-    available: [
-      "/vehicle/:rc",
-      "/number/:phone",
-      "/aadhar/:id",
-      "/upi/:vpa",
-      "/pan/:pan?api_key=...",
-      "/keyinfo/:api_key"
-    ]
+    channel: "https://t.me/MR_SHREY3"
   }, null, 2), {
     status: 404,
     headers: { "Content-Type": "application/json", ...corsHeaders }
   });
 }
 
-// =====================================================================
-// START SERVER
-// =====================================================================
-
 const PORT = parseInt(Deno.env.get("PORT") || "8000");
-
 Deno.serve({ port: PORT }, handler);
-
-console.log(`
-╔═══════════════════════════════════════════════════════╗
-║   🚀 MR SHREY API Gateway Running!                  ║
-║   👨‍💻 Developer: MR SHREY                            ║
-║   📢 Channel: https://t.me/MR_SHREY3                ║
-║   🌐 Port: ${PORT}                                    ║
-╚═══════════════════════════════════════════════════════╝
-`);
