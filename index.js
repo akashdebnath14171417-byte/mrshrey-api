@@ -1,13 +1,13 @@
 // =====================================================================
-// MR SHREY API - ESM Version (Deno Compatible)
+// MR SHREY API - Pure Deno Version (No require)
 // =====================================================================
 
-import express from 'express';
-import axios from 'axios';
-import cors from 'cors';
+import express from "npm:express@4.18.2";
+import axios from "npm:axios@1.6.0";
+import cors from "npm:cors@2.8.5";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Deno.env.get("PORT") || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -94,6 +94,27 @@ function validateApiKey(apiKey) {
 }
 
 // =====================================================================
+// FAST FETCH WITH TIMEOUT
+// =====================================================================
+
+async function fastFetch(url, options = {}, timeout = 10000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeout);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+}
+
+// =====================================================================
 // ROUTES
 // =====================================================================
 
@@ -102,8 +123,8 @@ app.get('/', (req, res) => {
     service: "MR SHREY API Gateway",
     developer: "MR SHREY",
     channel: "https://t.me/MR_SHREY3",
-    version: "4.0",
-    status: "✅ Working",
+    version: "5.0",
+    status: "✅ All APIs Working",
     endpoints: {
       "/vehicle/:rc": { example: "/vehicle/MH12DE1433" },
       "/number/:phone": { example: "/number/9876543210" },
@@ -111,6 +132,12 @@ app.get('/', (req, res) => {
       "/upi/:vpa": { example: "/upi/example@axl" },
       "/pan/:pan": { params: "api_key", example: "/pan/JCZPS4827P?api_key=MR_SHREY_MONTHLY_001" },
       "/keyinfo/:api_key": { example: "/keyinfo/MR_SHREY_MONTHLY_001" }
+    },
+    available_plans: {
+      "1 Month": { key: "MR_SHREY_MONTHLY_001", daily_limit: 1000 },
+      "2 Months": { key: "MR_SHREY_2MONTH_001", daily_limit: 2000 },
+      "3 Months": { key: "MR_SHREY_3MONTH_001", daily_limit: 3000 },
+      "Master (1 Year)": { key: "MR_SHREY_MASTER_001", daily_limit: 10000 }
     }
   });
 });
@@ -130,20 +157,22 @@ app.get('/keyinfo/:apiKey', (req, res) => {
 // =============================================================
 app.get('/vehicle/:rc', async (req, res) => {
   try {
-    const response = await axios.get(
+    const response = await fastFetch(
       `https://rootx-osint.in/?type=v_num&key=seed_bhai&query=${req.params.rc}`,
-      { timeout: 8000 }
+      { headers: { "User-Agent": "Mozilla/5.0" } },
+      8000
     );
+    const data = await response.json();
     res.json({
       status: "success",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
-      data: response.data
+      data: data
     });
   } catch (error) {
     res.status(500).json({
       status: "error",
-      message: error.message || "Vehicle API failed",
+      message: error.message || "Vehicle API timeout",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3"
     });
@@ -155,20 +184,22 @@ app.get('/vehicle/:rc', async (req, res) => {
 // =============================================================
 app.get('/number/:phone', async (req, res) => {
   try {
-    const response = await axios.get(
+    const response = await fastFetch(
       `https://rootx-osint.in/?type=num&key=seed_bhai&query=${req.params.phone}`,
-      { timeout: 8000 }
+      { headers: { "User-Agent": "Mozilla/5.0" } },
+      8000
     );
+    const data = await response.json();
     res.json({
       status: "success",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
-      data: response.data
+      data: data
     });
   } catch (error) {
     res.status(500).json({
       status: "error",
-      message: error.message || "Number API failed",
+      message: error.message || "Number API timeout",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3"
     });
@@ -180,20 +211,22 @@ app.get('/number/:phone', async (req, res) => {
 // =============================================================
 app.get('/aadhar/:id', async (req, res) => {
   try {
-    const response = await axios.get(
+    const response = await fastFetch(
       `https://rootx-osint.in/?type=aadhar_fam_v2&key=seed_bhai&query=${req.params.id}`,
-      { timeout: 8000 }
+      { headers: { "User-Agent": "Mozilla/5.0" } },
+      8000
     );
+    const data = await response.json();
     res.json({
       status: "success",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
-      data: response.data
+      data: data
     });
   } catch (error) {
     res.status(500).json({
       status: "error",
-      message: error.message || "Aadhar API failed",
+      message: error.message || "Aadhar API timeout",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3"
     });
@@ -205,32 +238,35 @@ app.get('/aadhar/:id', async (req, res) => {
 // =============================================================
 app.get('/upi/:vpa', async (req, res) => {
   try {
-    const response = await axios.post(
+    const response = await fastFetch(
       "https://www.amazon.in/apay/money-transfer/verify-vpa/v2",
       {
-        recipientVpa: req.params.vpa,
-        clientContext: { pageType: "EAP", useCase: "SEND_MONEY" }
-      },
-      {
+        method: "POST",
         headers: {
           "User-Agent": "Amazon.com/30.22.0.300 (Android/15/V2509)",
-          "Content-Type": "application/json",
+          "Content-Type": "application/json; charset=utf-8",
           "Origin": "https://www.amazon.in",
-          "Referer": "https://www.amazon.in/apay/money-transfer/assets/ap4-eap/index.html"
+          "Referer": "https://www.amazon.in/apay/money-transfer/assets/ap4-eap/index.html",
+          "Cookie": "session-id=259-7081962-2819512"
         },
-        timeout: 10000
-      }
+        body: JSON.stringify({
+          recipientVpa: req.params.vpa,
+          clientContext: { pageType: "EAP", useCase: "SEND_MONEY" }
+        })
+      },
+      10000
     );
+    const data = await response.json();
     res.json({
       status: "success",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
-      data: response.data
+      data: data
     });
   } catch (error) {
     res.status(500).json({
       status: "error",
-      message: error.message || "UPI API failed",
+      message: error.message || "UPI request failed",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3"
     });
@@ -263,18 +299,20 @@ app.get('/pan/:pan', async (req, res) => {
   }
   
   try {
-    const response = await axios.get(
+    const response = await fastFetch(
       `https://turtlemintloans.com/api/minterprise/v1/products/personal-loan/leads/existing-lead-by-pan?pan=${req.params.pan}`,
       {
         headers: {
           "x-broker": "turtlemint",
           "authorization": "Bearer f13517d5a59b689d16aa30c528ccaf7801f823b0f5548f65d6d3793270cfe8d628cea877289aba166e5425c31cfc7a0b",
-          "x-provider": "signzy"
-        },
-        timeout: 10000
-      }
+          "x-provider": "signzy",
+          "content-type": "application/json"
+        }
+      },
+      10000
     );
     
+    const data = await response.json();
     validation.data.used_today += 1;
     const keyInfo = getKeyInfo(apiKey);
     
@@ -283,7 +321,7 @@ app.get('/pan/:pan', async (req, res) => {
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
       key_info: keyInfo,
-      data: response.data
+      data: data
     });
   } catch (error) {
     res.status(500).json({
@@ -301,14 +339,29 @@ app.use((req, res) => {
     status: "error",
     message: "Endpoint not found",
     developer: "MR SHREY",
-    channel: "https://t.me/MR_SHREY3"
+    channel: "https://t.me/MR_SHREY3",
+    available: [
+      "/vehicle/:rc",
+      "/number/:phone",
+      "/aadhar/:id",
+      "/upi/:vpa",
+      "/pan/:pan?api_key=...",
+      "/keyinfo/:api_key"
+    ]
   });
 });
 
 // =====================================================================
-// START
+// START SERVER
 // =====================================================================
 
 app.listen(PORT, () => {
-  console.log(`🚀 MR SHREY API running on port ${PORT}`);
+  console.log(`
+╔═══════════════════════════════════════════════════════╗
+║   🚀 MR SHREY API Gateway Running!                  ║
+║   👨‍💻 Developer: MR SHREY                            ║
+║   📢 Channel: https://t.me/MR_SHREY3                ║
+║   🌐 Port: ${PORT}                                    ║
+╚═══════════════════════════════════════════════════════╝
+  `);
 });
