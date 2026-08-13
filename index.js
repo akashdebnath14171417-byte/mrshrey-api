@@ -1,5 +1,5 @@
 // =====================================================================
-// MR SHREY API - Pure Deno (No npm packages)
+// MR SHREY API - Pure Deno (No Dependencies)
 // =====================================================================
 
 // =====================================================================
@@ -12,22 +12,6 @@ const API_KEYS = {
     plan: "1 Month",
     daily_limit: 1000,
     expiry: "2026-09-13",
-    used_today: 0,
-    last_reset: "2026-08-13"
-  },
-  "MR_SHREY_2MONTH_001": {
-    key: "MR_SHREY_2MONTH_001",
-    plan: "2 Months",
-    daily_limit: 2000,
-    expiry: "2026-10-13",
-    used_today: 0,
-    last_reset: "2026-08-13"
-  },
-  "MR_SHREY_3MONTH_001": {
-    key: "MR_SHREY_3MONTH_001",
-    plan: "3 Months",
-    daily_limit: 3000,
-    expiry: "2026-11-13",
     used_today: 0,
     last_reset: "2026-08-13"
   },
@@ -48,9 +32,7 @@ const API_KEYS = {
 function getKeyInfo(apiKey) {
   const data = API_KEYS[apiKey];
   if (!data) return null;
-  
   const daysLeft = Math.ceil((new Date(data.expiry) - new Date()) / (1000 * 60 * 60 * 24));
-  
   return {
     plan: data.plan,
     expiry: data.expiry,
@@ -65,43 +47,18 @@ function getKeyInfo(apiKey) {
 function validateApiKey(apiKey) {
   const data = API_KEYS[apiKey];
   if (!data) return { valid: false, error: "❌ Invalid API Key!" };
-  
   if (new Date() > new Date(data.expiry)) {
     return { valid: false, error: "❌ API Key Expired!" };
   }
-  
   const today = new Date().toISOString().split('T')[0];
   if (data.last_reset !== today) {
     data.used_today = 0;
     data.last_reset = today;
   }
-  
   if (data.used_today >= data.daily_limit) {
     return { valid: false, error: `❌ Daily Limit Reached! (0/${data.daily_limit} remaining)` };
   }
-  
   return { valid: true, data };
-}
-
-// =====================================================================
-// FAST FETCH WITH TIMEOUT
-// =====================================================================
-
-async function fastFetch(url, options = {}, timeout = 10000) {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeout);
-  
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
-    return response;
-  } catch (error) {
-    clearTimeout(timeoutId);
-    throw error;
-  }
 }
 
 // =====================================================================
@@ -115,7 +72,7 @@ const corsHeaders = {
 };
 
 // =====================================================================
-// HANDLER
+// MAIN HANDLER
 // =====================================================================
 
 async function handler(req) {
@@ -137,7 +94,7 @@ async function handler(req) {
       service: "MR SHREY API Gateway",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
-      version: "5.0",
+      version: "6.0",
       status: "✅ All APIs Working",
       endpoints: {
         "/vehicle/:rc": { example: "/vehicle/MH12DE1433" },
@@ -146,12 +103,6 @@ async function handler(req) {
         "/upi/:vpa": { example: "/upi/example@axl" },
         "/pan/:pan": { params: "api_key", example: "/pan/JCZPS4827P?api_key=MR_SHREY_MONTHLY_001" },
         "/keyinfo/:api_key": { example: "/keyinfo/MR_SHREY_MONTHLY_001" }
-      },
-      available_plans: {
-        "1 Month": { key: "MR_SHREY_MONTHLY_001", daily_limit: 1000 },
-        "2 Months": { key: "MR_SHREY_2MONTH_001", daily_limit: 2000 },
-        "3 Months": { key: "MR_SHREY_3MONTH_001", daily_limit: 3000 },
-        "Master (1 Year)": { key: "MR_SHREY_MASTER_001", daily_limit: 10000 }
       }
     }, null, 2), {
       status: 200,
@@ -180,10 +131,9 @@ async function handler(req) {
   // =============================================================
   if (parts[0] === "vehicle" && parts.length === 2) {
     try {
-      const response = await fastFetch(
+      const response = await fetch(
         `https://rootx-osint.in/?type=v_num&key=seed_bhai&query=${parts[1]}`,
-        { headers: { "User-Agent": "Mozilla/5.0" } },
-        8000
+        { headers: { "User-Agent": "Mozilla/5.0" } }
       );
       const data = await response.json();
       return new Response(JSON.stringify({
@@ -198,7 +148,7 @@ async function handler(req) {
     } catch (error) {
       return new Response(JSON.stringify({
         status: "error",
-        message: error.message || "Vehicle API timeout",
+        message: error.message || "Vehicle API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
       }, null, 2), {
@@ -213,10 +163,9 @@ async function handler(req) {
   // =============================================================
   if (parts[0] === "number" && parts.length === 2) {
     try {
-      const response = await fastFetch(
+      const response = await fetch(
         `https://rootx-osint.in/?type=num&key=seed_bhai&query=${parts[1]}`,
-        { headers: { "User-Agent": "Mozilla/5.0" } },
-        8000
+        { headers: { "User-Agent": "Mozilla/5.0" } }
       );
       const data = await response.json();
       return new Response(JSON.stringify({
@@ -231,7 +180,7 @@ async function handler(req) {
     } catch (error) {
       return new Response(JSON.stringify({
         status: "error",
-        message: error.message || "Number API timeout",
+        message: error.message || "Number API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
       }, null, 2), {
@@ -246,10 +195,9 @@ async function handler(req) {
   // =============================================================
   if (parts[0] === "aadhar" && parts.length === 2) {
     try {
-      const response = await fastFetch(
+      const response = await fetch(
         `https://rootx-osint.in/?type=aadhar_fam_v2&key=seed_bhai&query=${parts[1]}`,
-        { headers: { "User-Agent": "Mozilla/5.0" } },
-        8000
+        { headers: { "User-Agent": "Mozilla/5.0" } }
       );
       const data = await response.json();
       return new Response(JSON.stringify({
@@ -264,7 +212,7 @@ async function handler(req) {
     } catch (error) {
       return new Response(JSON.stringify({
         status: "error",
-        message: error.message || "Aadhar API timeout",
+        message: error.message || "Aadhar API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
       }, null, 2), {
@@ -279,13 +227,13 @@ async function handler(req) {
   // =============================================================
   if (parts[0] === "upi" && parts.length === 2) {
     try {
-      const response = await fastFetch(
+      const response = await fetch(
         "https://www.amazon.in/apay/money-transfer/verify-vpa/v2",
         {
           method: "POST",
           headers: {
             "User-Agent": "Amazon.com/30.22.0.300 (Android/15/V2509)",
-            "Content-Type": "application/json; charset=utf-8",
+            "Content-Type": "application/json",
             "Origin": "https://www.amazon.in",
             "Referer": "https://www.amazon.in/apay/money-transfer/assets/ap4-eap/index.html",
             "Cookie": "session-id=259-7081962-2819512"
@@ -294,8 +242,7 @@ async function handler(req) {
             recipientVpa: parts[1],
             clientContext: { pageType: "EAP", useCase: "SEND_MONEY" }
           })
-        },
-        10000
+        }
       );
       const data = await response.json();
       return new Response(JSON.stringify({
@@ -310,7 +257,7 @@ async function handler(req) {
     } catch (error) {
       return new Response(JSON.stringify({
         status: "error",
-        message: error.message || "UPI request failed",
+        message: error.message || "UPI API failed",
         developer: "MR SHREY",
         channel: "https://t.me/MR_SHREY3"
       }, null, 2), {
@@ -325,7 +272,6 @@ async function handler(req) {
   // =============================================================
   if (parts[0] === "pan" && parts.length === 2) {
     const apiKey = params.get('api_key');
-    
     if (!apiKey) {
       return new Response(JSON.stringify({
         status: "error",
@@ -337,7 +283,6 @@ async function handler(req) {
         headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
     const validation = validateApiKey(apiKey);
     if (!validation.valid) {
       return new Response(JSON.stringify({
@@ -350,9 +295,8 @@ async function handler(req) {
         headers: { "Content-Type": "application/json", ...corsHeaders }
       });
     }
-    
     try {
-      const response = await fastFetch(
+      const response = await fetch(
         `https://turtlemintloans.com/api/minterprise/v1/products/personal-loan/leads/existing-lead-by-pan?pan=${parts[1]}`,
         {
           headers: {
@@ -361,13 +305,11 @@ async function handler(req) {
             "x-provider": "signzy",
             "content-type": "application/json"
           }
-        },
-        10000
+        }
       );
       const data = await response.json();
       validation.data.used_today += 1;
       const keyInfo = getKeyInfo(apiKey);
-      
       return new Response(JSON.stringify({
         status: "success",
         developer: "MR SHREY",
