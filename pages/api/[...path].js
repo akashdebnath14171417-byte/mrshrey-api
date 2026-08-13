@@ -56,20 +56,17 @@ function validateApiKey(apiKey) {
 export default async function handler(req, res) {
   const { query } = req;
   const parts = query.path || [];
-  const method = req.method;
   
   // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  if (method === 'OPTIONS') {
+  if (req.method === 'OPTIONS') {
     return res.status(204).end();
   }
   
-  // =============================================================
   // HOME
-  // =============================================================
   if (parts.length === 0) {
     return res.status(200).json({
       service: "MR SHREY API Gateway",
@@ -88,9 +85,7 @@ export default async function handler(req, res) {
     });
   }
   
-  // =============================================================
   // KEY INFO
-  // =============================================================
   if (parts[0] === "keyinfo" && parts.length === 2) {
     const keyInfo = getKeyInfo(parts[1]);
     return res.status(200).json({
@@ -101,9 +96,7 @@ export default async function handler(req, res) {
     });
   }
   
-  // =============================================================
   // VEHICLE
-  // =============================================================
   if (parts[0] === "vehicle" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -127,9 +120,7 @@ export default async function handler(req, res) {
     }
   }
   
-  // =============================================================
   // NUMBER
-  // =============================================================
   if (parts[0] === "number" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -153,9 +144,7 @@ export default async function handler(req, res) {
     }
   }
   
-  // =============================================================
   // AADHAR
-  // =============================================================
   if (parts[0] === "aadhar" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -179,9 +168,7 @@ export default async function handler(req, res) {
     }
   }
   
-  // =============================================================
   // UPI
-  // =============================================================
   if (parts[0] === "upi" && parts.length === 2) {
     try {
       const response = await fetch(
@@ -218,9 +205,7 @@ export default async function handler(req, res) {
     }
   }
   
-  // =============================================================
-  // PAN (Requires API Key)
-  // =============================================================
+  // PAN
   if (parts[0] === "pan" && parts.length === 2) {
     const apiKey = req.query.api_key;
     if (!apiKey) {
