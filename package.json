@@ -1,7 +1,6 @@
 {
   "name": "mrshrey-api",
   "version": "1.0.0",
-  "type": "module",
   "description": "MR SHREY API Gateway",
   "main": "index.js",
   "scripts": {
