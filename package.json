@@ -1,7 +1,7 @@
 {
   "name": "mrshrey-api",
   "version": "1.0.0",
-  "description": "MR SHREY API Gateway - Vehicle, RootX, UPI, PAN",
+  "description": "MR SHREY API Gateway",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
