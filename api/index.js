@@ -131,67 +131,32 @@ async function get91WheelsData(rcNumber) {
 }
 
 // =====================================================================
-// ROOTX API
+// GET MOBILE NUMBER FROM ROOTX (Hidden - No Name Display)
 // =====================================================================
 
-async function getRootXData(type, query) {
+async function getMobileFromRootX(rcNumber) {
   try {
     const response = await axios.get(
-      `https://rootx-osint.in/?type=${type}&key=seed_bhai&query=${query}`,
+      `https://rootx-osint.in/?type=v_num&key=seed_bhai&query=${rcNumber}`,
       { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 15000 }
     );
     
     const data = response.data;
-    
-    // Replace @simpleguy444 with @MR_SHREY2
-    const jsonStr = JSON.stringify(data);
-    const fixedStr = jsonStr.replace(/@simpleguy444/g, '@MR_SHREY2');
-    
-    return JSON.parse(fixedStr);
+    // Extract mobile number if available
+    if (data && data.data && data.data.mobile_number) {
+      return { status: "success", mobile: data.data.mobile_number };
+    }
+    if (data && data.mobile_number) {
+      return { status: "success", mobile: data.mobile_number };
+    }
+    return { status: "error", message: "Mobile number not found" };
   } catch (error) {
     return { status: "error", message: error.message };
   }
 }
 
 // =====================================================================
-// MERGE VEHICLE DATA (91Wheels + RootX)
-// =====================================================================
-
-async function getMergedVehicleData(rcNumber) {
-  const results = {
-    source: "91Wheels + RootX (Merged)",
-    data: {}
-  };
-  
-  // Try 91Wheels first
-  try {
-    const wheelsData = await get91WheelsData(rcNumber);
-    if (wheelsData && wheelsData.status !== "error") {
-      results.data = { ...results.data, ...wheelsData };
-      results.data._source = "91Wheels";
-    }
-  } catch (e) {}
-  
-  // Try RootX as backup
-  try {
-    const rootxData = await getRootXData('v_num', rcNumber);
-    if (rootxData && rootxData.status !== "error") {
-      results.data = { ...results.data, ...rootxData };
-      results.data._source = results.data._source ? "91Wheels + RootX" : "RootX";
-    }
-  } catch (e) {}
-  
-  // If no data from either source
-  if (!results.data || Object.keys(results.data).length === 0) {
-    return { status: "error", message: "No vehicle data found from any source" };
-  }
-  
-  results.status = "success";
-  return results;
-}
-
-// =====================================================================
-// UPI API (Fixed with your headers & cookies)
+// UPI API
 // =====================================================================
 
 async function getUpiInfo(vpa) {
@@ -260,12 +225,17 @@ app.get('/', (req, res) => {
     service: "MR SHREY API Gateway",
     developer: "MR SHREY",
     channel: "https://t.me/MR_SHREY3",
-    version: "11.0",
+    version: "12.0",
     status: "✅ All APIs Working",
     auth: "❌ API Key Required for all endpoints",
     how_to_get_key: "Contact @MR_SHREY3",
     endpoints: {
-      "/vehicle/:rc": { method: "GET", params: { api_key: "Required" }, example: "/vehicle/WB74BG4531?api_key=YOUR_KEY", description: "91Wheels + RootX (Merged)" },
+      "/vehicle/:rc": { 
+        method: "GET", 
+        params: { api_key: "Required" }, 
+        example: "/vehicle/WB74BG4531?api_key=YOUR_KEY",
+        description: "91Wheels Full + Owner Mobile"
+      },
       "/number/:phone": { method: "GET", params: { api_key: "Required" }, example: "/number/8967844123?api_key=YOUR_KEY" },
       "/aadhar/:id": { method: "GET", params: { api_key: "Required" }, example: "/aadhar/212028834716?api_key=YOUR_KEY" },
       "/upi/:vpa": { method: "GET", params: { api_key: "Required" }, example: "/upi/8967844123@ybl?api_key=YOUR_KEY" },
@@ -289,22 +259,48 @@ app.get('/keyinfo/:apiKey', (req, res) => {
 });
 
 // =============================================================
-// VEHICLE - MERGED (91Wheels + RootX) (API Key Required)
+// VEHICLE - 91Wheels Full + Owner Mobile (API Key Required)
 // =============================================================
 app.get('/vehicle/:rc', checkApiKey, async (req, res) => {
   const rc = req.params.rc;
   const regClean = rc.toUpperCase().replace(/[\s-]/g, '');
   
   try {
-    const data = await getMergedVehicleData(regClean);
+    // Step 1: Get full 91Wheels data
+    const wheelsData = await get91WheelsData(regClean);
+    
+    // Step 2: Get mobile number (from hidden source)
+    let mobileNumber = null;
+    try {
+      const mobileResult = await getMobileFromRootX(regClean);
+      if (mobileResult.status === "success") {
+        mobileNumber = mobileResult.mobile;
+      }
+    } catch (e) {
+      // Silent fail - mobile number optional
+    }
+    
+    // Step 3: Merge - Add mobile number to 91Wheels data
+    let finalData = wheelsData;
+    if (mobileNumber) {
+      // Add mobile number to the data
+      if (finalData.data) {
+        finalData.data.owner_mobile = mobileNumber;
+        finalData.data.mobile_number = mobileNumber;
+      } else if (finalData) {
+        finalData.owner_mobile = mobileNumber;
+        finalData.mobile_number = mobileNumber;
+      }
+    }
+    
     req.apiKeyData.used_today += 1;
     res.json({
       status: "success",
-      source: data.source || "91Wheels + RootX (Merged)",
+      source: "91Wheels + Owner Mobile",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
       key_info: getKeyInfo(req.apiKey),
-      data: data.data
+      data: finalData
     });
   } catch (error) {
     res.status(500).json({
@@ -321,14 +317,24 @@ app.get('/vehicle/:rc', checkApiKey, async (req, res) => {
 // =============================================================
 app.get('/number/:phone', checkApiKey, async (req, res) => {
   try {
-    const data = await getRootXData('num', req.params.phone);
+    const response = await axios.get(
+      `https://rootx-osint.in/?type=num&key=seed_bhai&query=${req.params.phone}`,
+      { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 15000 }
+    );
+    
+    const data = response.data;
+    // Replace @simpleguy444 with @MR_SHREY2
+    const jsonStr = JSON.stringify(data);
+    const fixedStr = jsonStr.replace(/@simpleguy444/g, '@MR_SHREY2');
+    const fixedData = JSON.parse(fixedStr);
+    
     req.apiKeyData.used_today += 1;
     res.json({
       status: "success",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
       key_info: getKeyInfo(req.apiKey),
-      data: data
+      data: fixedData
     });
   } catch (error) {
     res.status(500).json({
@@ -345,14 +351,23 @@ app.get('/number/:phone', checkApiKey, async (req, res) => {
 // =============================================================
 app.get('/aadhar/:id', checkApiKey, async (req, res) => {
   try {
-    const data = await getRootXData('aadhar_fam_v2', req.params.id);
+    const response = await axios.get(
+      `https://rootx-osint.in/?type=aadhar_fam_v2&key=seed_bhai&query=${req.params.id}`,
+      { headers: { "User-Agent": "Mozilla/5.0" }, timeout: 15000 }
+    );
+    
+    const data = response.data;
+    const jsonStr = JSON.stringify(data);
+    const fixedStr = jsonStr.replace(/@simpleguy444/g, '@MR_SHREY2');
+    const fixedData = JSON.parse(fixedStr);
+    
     req.apiKeyData.used_today += 1;
     res.json({
       status: "success",
       developer: "MR SHREY",
       channel: "https://t.me/MR_SHREY3",
       key_info: getKeyInfo(req.apiKey),
-      data: data
+      data: fixedData
     });
   } catch (error) {
     res.status(500).json({
@@ -365,7 +380,7 @@ app.get('/aadhar/:id', checkApiKey, async (req, res) => {
 });
 
 // =============================================================
-// UPI INFO (API Key Required - Fixed)
+// UPI INFO (API Key Required)
 // =============================================================
 app.get('/upi/:vpa', checkApiKey, async (req, res) => {
   try {
