@@ -142,7 +142,6 @@ async function getMobileFromRootX(rcNumber) {
     );
     
     const data = response.data;
-    // Extract mobile number if available
     if (data && data.data && data.data.mobile_number) {
       return { status: "success", mobile: data.data.mobile_number };
     }
@@ -225,11 +224,17 @@ app.get('/', (req, res) => {
     service: "MR SHREY API Gateway",
     developer: "MR SHREY",
     channel: "https://t.me/MR_SHREY3",
-    version: "12.0",
+    version: "13.0",
     status: "✅ All APIs Working",
     auth: "❌ API Key Required for all endpoints",
     how_to_get_key: "Contact @MR_SHREY3",
     endpoints: {
+      "/vehicle-91/:rc": { 
+        method: "GET", 
+        params: { api_key: "Required" }, 
+        example: "/vehicle-91/WB74BG4531?api_key=YOUR_KEY",
+        description: "Only 91Wheels (No RootX)"
+      },
       "/vehicle/:rc": { 
         method: "GET", 
         params: { api_key: "Required" }, 
@@ -259,7 +264,35 @@ app.get('/keyinfo/:apiKey', (req, res) => {
 });
 
 // =============================================================
-// VEHICLE - 91Wheels Full + Owner Mobile (API Key Required)
+// VEHICLE - ONLY 91WHEELS (No RootX)
+// =============================================================
+app.get('/vehicle-91/:rc', checkApiKey, async (req, res) => {
+  const rc = req.params.rc;
+  const regClean = rc.toUpperCase().replace(/[\s-]/g, '');
+  
+  try {
+    const data = await get91WheelsData(regClean);
+    req.apiKeyData.used_today += 1;
+    res.json({
+      status: "success",
+      source: "91Wheels Only",
+      developer: "MR SHREY",
+      channel: "https://t.me/MR_SHREY3",
+      key_info: getKeyInfo(req.apiKey),
+      data: data
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: "error",
+      message: error.message || "91Wheels API failed",
+      developer: "MR SHREY",
+      channel: "https://t.me/MR_SHREY3"
+    });
+  }
+});
+
+// =============================================================
+// VEHICLE - 91Wheels Full + Owner Mobile (Hidden RootX)
 // =============================================================
 app.get('/vehicle/:rc', checkApiKey, async (req, res) => {
   const rc = req.params.rc;
@@ -283,7 +316,6 @@ app.get('/vehicle/:rc', checkApiKey, async (req, res) => {
     // Step 3: Merge - Add mobile number to 91Wheels data
     let finalData = wheelsData;
     if (mobileNumber) {
-      // Add mobile number to the data
       if (finalData.data) {
         finalData.data.owner_mobile = mobileNumber;
         finalData.data.mobile_number = mobileNumber;
@@ -313,7 +345,7 @@ app.get('/vehicle/:rc', checkApiKey, async (req, res) => {
 });
 
 // =============================================================
-// NUMBER INFO (API Key Required)
+// NUMBER INFO
 // =============================================================
 app.get('/number/:phone', checkApiKey, async (req, res) => {
   try {
@@ -323,7 +355,6 @@ app.get('/number/:phone', checkApiKey, async (req, res) => {
     );
     
     const data = response.data;
-    // Replace @simpleguy444 with @MR_SHREY2
     const jsonStr = JSON.stringify(data);
     const fixedStr = jsonStr.replace(/@simpleguy444/g, '@MR_SHREY2');
     const fixedData = JSON.parse(fixedStr);
@@ -347,7 +378,7 @@ app.get('/number/:phone', checkApiKey, async (req, res) => {
 });
 
 // =============================================================
-// AADHAR INFO (API Key Required)
+// AADHAR INFO
 // =============================================================
 app.get('/aadhar/:id', checkApiKey, async (req, res) => {
   try {
@@ -380,7 +411,7 @@ app.get('/aadhar/:id', checkApiKey, async (req, res) => {
 });
 
 // =============================================================
-// UPI INFO (API Key Required)
+// UPI INFO
 // =============================================================
 app.get('/upi/:vpa', checkApiKey, async (req, res) => {
   try {
@@ -404,7 +435,7 @@ app.get('/upi/:vpa', checkApiKey, async (req, res) => {
 });
 
 // =============================================================
-// PAN INFO (API Key Required)
+// PAN INFO
 // =============================================================
 app.get('/pan/:pan', checkApiKey, async (req, res) => {
   try {
